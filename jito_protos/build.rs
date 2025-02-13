@@ -2,7 +2,9 @@ use tonic_build::configure;
 
 fn main() {
     configure()
-        .compile(
+        .protoc_arg("--experimental_allow_proto3_optional") // Enable proto3 optional fields
+        .compile_protos(
+            // Use the new method name
             &[
                 "protos/auth.proto",
                 "protos/block.proto",
