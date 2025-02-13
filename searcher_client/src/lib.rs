@@ -81,7 +81,8 @@ pub async fn get_searcher_client(
 pub async fn create_grpc_channel(url: &str) -> BlockEngineConnectionResult<Channel> {
     let mut endpoint = Endpoint::from_shared(url.to_string()).expect("invalid url");
     if url.starts_with("https") {
-        endpoint = endpoint.tls_config(tonic::transport::ClientTlsConfig::new())?;
+        endpoint =
+            endpoint.tls_config(tonic::transport::ClientTlsConfig::new().with_native_roots())?;
     }
     Ok(endpoint.connect().await?)
 }
