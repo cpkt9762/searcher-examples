@@ -160,7 +160,7 @@ pub async fn pending_tx_loop(
     loop {
         sleep(Duration::from_secs(1)).await;
 
-        match get_searcher_client(&block_engine_url, &auth_keypair).await {
+        match get_searcher_client(&block_engine_url, &auth_keypair, None).await {
             Ok(mut searcher_client) => {
                 match searcher_client
                     .subscribe_mempool(MempoolSubscription {
@@ -235,7 +235,7 @@ pub async fn bundle_results_loop(
 
     loop {
         sleep(Duration::from_millis(1000)).await;
-        match get_searcher_client(&block_engine_url, &auth_keypair).await {
+        match get_searcher_client(&block_engine_url, &auth_keypair, None).await {
             Ok(mut c) => match c
                 .subscribe_bundle_results(SubscribeBundleResultsRequest {})
                 .await

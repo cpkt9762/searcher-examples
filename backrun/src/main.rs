@@ -512,7 +512,7 @@ async fn run_searcher_loop(
     let mut block_stats: HashMap<Slot, BlockStats> = HashMap::new();
     let mut block_signatures: HashMap<Slot, HashSet<Signature>> = HashMap::new();
 
-    let mut searcher_client = get_searcher_client(&block_engine_url, &auth_keypair).await?;
+    let mut searcher_client = get_searcher_client(&block_engine_url, &auth_keypair, None).await?;
 
     let mut rng = thread_rng();
 

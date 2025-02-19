@@ -4,6 +4,7 @@ use std::{
 };
 
 use futures_util::StreamExt;
+use hyper_util::client::legacy::connect::HttpConnector;
 use jito_protos::{
     auth::{auth_service_client::AuthServiceClient, Role},
     bundle::{
@@ -61,10 +62,11 @@ pub type BlockEngineConnectionResult<T> = Result<T, BlockEngineConnectionError>;
 pub async fn get_searcher_client(
     block_engine_url: &str,
     auth_keypair: &Arc<Keypair>,
+    local_addr: Option<&str>,
 ) -> BlockEngineConnectionResult<
     SearcherServiceClient<InterceptedService<Channel, ClientInterceptor>>,
 > {
-    let auth_channel = create_grpc_channel(block_engine_url).await?;
+    let auth_channel = create_grpc_channel(block_engine_url, local_addr).await?;
     let client_interceptor = ClientInterceptor::new(
         AuthServiceClient::new(auth_channel),
         auth_keypair,
@@ -72,13 +74,25 @@ pub async fn get_searcher_client(
     )
     .await?;
 
-    let searcher_channel = create_grpc_channel(block_engine_url).await?;
+    let searcher_channel = create_grpc_channel(block_engine_url, local_addr).await?;
     let searcher_client =
         SearcherServiceClient::with_interceptor(searcher_channel, client_interceptor);
     Ok(searcher_client)
 }
 
-pub async fn create_grpc_channel(url: &str) -> BlockEngineConnectionResult<Channel> {
+pub async fn create_grpc_channel(
+    url: &str,
+    local_addr: Option<&str>,
+) -> BlockEngineConnectionResult<Channel> {
+    let mut http = HttpConnector::new();
+    http.enforce_http(false);
+    http.set_nodelay(true);
+    http.set_keepalive(Some(Duration::from_secs(60)));
+    http.set_connect_timeout(Some(Duration::from_secs(10)));
+    if let Some(local_addr) = local_addr {
+        http.set_local_address(Some(std::net::IpAddr::V4(local_addr.parse().unwrap())));
+    }
+
     let mut endpoint = Endpoint::from_shared(url.to_string()).expect("invalid url");
     if url.starts_with("https") {
         endpoint =
