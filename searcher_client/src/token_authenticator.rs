@@ -8,7 +8,7 @@ use jito_protos::auth::{
     GenerateAuthTokensRequest, RefreshAccessTokenRequest, Role, Token,
 };
 use prost_types::Timestamp;
-use solana_metrics::datapoint_info;
+use solana_metrics::{datapoint_error, datapoint_info};
 use solana_sdk::signature::{Keypair, Signer};
 use tokio::{task::JoinHandle, time::sleep};
 use tonic::{service::Interceptor, transport::Channel, Request, Status};
@@ -121,7 +121,9 @@ impl ClientInterceptor {
                                 true
                             }
                         };
-                        datapoint_info!("searcher-full-auth", ("is_error", is_error, bool));
+                        if is_error {
+                            datapoint_error!("searcher-full-auth", ("is_error", is_error, bool));
+                        }
                     }
                     // re-up the access token if it expires soon
                     (_, true) => {
@@ -140,8 +142,9 @@ impl ClientInterceptor {
                                 true
                             }
                         };
-
-                        datapoint_info!("searcher-refresh-auth", ("is_error", is_error, bool));
+                        if is_error {
+                            datapoint_error!("searcher-refresh-auth", ("is_error", is_error, bool));
+                        }
                     }
                     _ => {
                         sleep(Duration::from_secs(60)).await;

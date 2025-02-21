@@ -32,7 +32,6 @@ use solana_client::{
     rpc_response,
     rpc_response::RpcBlockUpdate,
 };
-use solana_metrics::{datapoint_info, set_host_id};
 use solana_sdk::{
     clock::Slot,
     commitment_config::{CommitmentConfig, CommitmentLevel},
@@ -50,6 +49,7 @@ use tokio::{
     time::interval,
 };
 use tonic::{codegen::InterceptedService, transport::Channel, Response, Status};
+use ::{datapoint_info, set_host_id};
 
 use crate::event_loops::{
     block_subscribe_loop, bundle_results_loop, pending_tx_loop, slot_subscribe_loop,
